@@ -38,7 +38,7 @@ describe Bosh::CloudStackCloud::StemcellCreator do
       image_params = {
           :displaytext => "stemcell-name 0.7.0",
           :name => "BOSH-random",
-          :ostypeid => 2,
+          :ostypeid => 3,
           :snapshotid => "snap-xxxxxxxx",
       }
 
@@ -57,6 +57,8 @@ describe Bosh::CloudStackCloud::StemcellCreator do
       cloud.compute.jobs.should_receive(:get).with("j-xxxxxx").and_return(job)
       creator.should_receive(:wait_job_volume).with(job)
 
+      snapshot.should_receive(:destroy)
+
       cloud.compute.images.should_receive(:get).with("j-xxxxxx").and_return(image)
       job.should_receive(:job_result).and_return({"template" => {"id" => "j-xxxxxx"}})
       Bosh::CloudStackCloud::TagManager.should_receive(:tag).with(image, "Name", "stemcell-name 0.7.0")
@@ -72,7 +74,7 @@ describe Bosh::CloudStackCloud::StemcellCreator do
 
       params[:displaytext].should == "stemcell-name 0.7.0"
       params[:name].should == "BOSH-random"
-      params[:ostypeid].should == 2
+      params[:ostypeid].should == 3
       params[:snapshotid].should == "id"
     end
   end
