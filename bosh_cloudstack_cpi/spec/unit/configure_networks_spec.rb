@@ -51,17 +51,17 @@ describe Bosh::CloudStackCloud::Cloud do
 
   it "adds floating ip to the server for vip network" do
     address = double("address", :id => "a-test", :ip_address => "10.0.0.1", :network_id => "a-test")
-    server = double("server", :id => "s-test", :name => "s-test", :addresses => [address], :zone_id => "s-zone")
+    server = double("server", :id => "i-test", :name => "i-test", :addresses => [address], :zone_id => "foobar-2a")
     network = double("network", :id => "n-test", :name => "n-test")
-    nat = double("nat", :id => "n-test", :ip_address_id => "n-test", virtual_machine_id => "n-test", network_id => "n-test")
+    nat = double("nat", :id => "n-test", :ip_address_id => "n-test", :virtual_machine_id => "n-test", :network_id => "n-test")
 
     nat.should_receive(:enable)
 
     cloud = mock_cloud do |compute|
-      compute.servers.should_receive(:get).with("s-test").and_return(server)
+      compute.servers.should_receive(:get).with("i-test").and_return(server)
+      compute.zones.should_receive(:get).with("foobar-2a").and_return(compute.zones[1])
       compute.ipaddresses.should_receive(:all).and_return([address])
       compute.networks.should_receive(:all).and_return([network])
-      compute.nats.should_receive(:new).and_return(nat)
     end
 
     old_settings = { "foo" => "bar", "networks" => "baz" }
@@ -75,17 +75,17 @@ describe Bosh::CloudStackCloud::Cloud do
 
   it "removes floating ip from the server if vip network is gone" do
     address = double("address", :id => "a-test", :ip_address => "10.0.0.1", :network_id => "a-test")
-    server = double("server", :id => "s-test", :name => "s-test", :addresses => [address], :zone_id => "s-zone")
+    server = double("server", :id => "i-test", :name => "i-test", :addresses => [address], :zone_id => "foobar-1a")
     network = double("network", :id => "n-test", :name => "n-test")
-    nat = double("nat", :id => "n-test", :ip_address_id => "n-test", virtual_machine_id => "n-test", network_id => "n-test")
+    nat = double("nat", :id => "n-test", :ip_address_id => "n-test", :virtual_machine_id => "n-test", :network_id => "n-test")
 
     nat.should_receive(:disable)
 
     cloud = mock_cloud do |compute|
-      compute.servers.should_receive(:get).with("s-test").and_return(server)
+      compute.servers.should_receive(:get).with("i-test").and_return(server)
+      compute.zones.should_receive(:get).with("foobar-2a").and_return(compute.zones[1])
       compute.ipaddresses.should_receive(:all).and_return([address])
       compute.networks.should_receive(:all).and_return([network])
-      compute.nats.should_receive(:new).and_return(nat)
     end
 
     old_settings = { "foo" => "bar", "networks" => "baz" }
