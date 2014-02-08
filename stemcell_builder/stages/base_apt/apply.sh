@@ -32,9 +32,9 @@ cp $assets_dir/root/firstboot.sh $chroot/root/firstboot.sh
 chmod 0755 $chroot/root/firstboot.sh
 
 cat > $chroot/etc/apt/sources.list <<EOS
-deb http://archive.ubuntu.com/ubuntu $DISTRIB_CODENAME main universe multiverse
-deb http://archive.ubuntu.com/ubuntu $DISTRIB_CODENAME-updates main universe multiverse
-deb http://security.ubuntu.com/ubuntu $DISTRIB_CODENAME-security main universe multiverse
+deb http://mirrors.163.com/ubuntu $DISTRIB_CODENAME main universe multiverse
+deb http://mirrors.163.com/ubuntu $DISTRIB_CODENAME-updates main universe multiverse
+deb http://mirrors.163.com/ubuntu $DISTRIB_CODENAME-security main universe multiverse
 EOS
 
 # Upgrade upstart first, to prevent it from messing up our stubs and starting daemons anyway

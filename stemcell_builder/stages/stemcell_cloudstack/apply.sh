@@ -46,7 +46,8 @@ manifest = {
         "os_type" => "linux",
         "os_distro" => "ubuntu",
         "architecture" => "x86_64",
-        "auto_disk_config" => "true"
+        "auto_disk_config" => "true",
+        "image_location" => "http://10.10.101.103/template/stemcell.img"
     }
 }
 
