@@ -92,7 +92,7 @@ module Bosh::CloudStackCloud
     # @option stemcell_properties [optional, String] ramdisk_file Name of the
     #   ramdisk image file provided at the stemcell archive
     # @return [String] CloudStack image UUID of the stemcell
-    def create_stemcell(image_path, stemcell_properties)
+    def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
         pid = nil
         begin
