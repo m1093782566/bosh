@@ -11,8 +11,8 @@ module Bosh
       def initialize(options)
         super(options)
         @client = HTTPClient.new
-        client.send_timeout = 7200
-        client.receive_timeout = 7200
+        @client.send_timeout = 7200
+        @client.receive_timeout = 7200
         @endpoint = @options[:endpoint]
         # @bucket = @options[:bucket] || "resources" # dav (or simple) doesn't support buckets
         @headers = {}
