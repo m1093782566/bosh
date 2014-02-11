@@ -1,15 +1,6 @@
 # Copyright (c) 2009-2013 VMware, Inc.
 # Copyright (c) 2012 Piston Cloud Computing, Inc.
-require 'sinatra'
 module Bosh::CloudStackCloud
-
-  class StemcellServer < Sinatra::Base
-    disable :logging
-    set :server, 'webrick' # thin cannnot serve large files
-    get "/stemcell.img" do
-      send_file(settings.stemcell_path)
-    end
-  end
   ##
   # BOSH CloudStack CPI
   class Cloud < Bosh::Cloud
@@ -122,11 +113,6 @@ module Bosh::CloudStackCloud
               image_params[:url] = "http://153.149.28.253/stemcell.img"
             end
 
-            pid = fork do
-              StemcellServer.set(stemcell_path: File.join(tmp_dir, "root.img"))
-              StemcellServer.run!(bind: "0.0.0.0", port: 80)
-            end
-            sleep 5
 
             @logger.debug("Using image parms: `#{image_params.inspect}'")
             image = @compute.images.new(image_params)
@@ -135,11 +121,7 @@ module Bosh::CloudStackCloud
             wait_resource(image, :"download complete", :status)
             image.id.to_s
           end
-        rescue => e
-          @logger.error(e)
-          raise e
-        ensure
-          Process.kill 9, pid if pid
+
         end
       end
     end
