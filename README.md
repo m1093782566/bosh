@@ -32,7 +32,7 @@ See also [the issue page](https://github.com/cloudfoundry-community/bosh-cloudst
 
 ### Create Inception server
 
-You need a VM on the CloudStack domain where you install a BOSH instance using this CPI. This VM is so-called "inception" server. Install BOSH CLI and BOSH Deployer gems on the server and run all operations with them.
+You need a VM on the CloudStack domain where you install a BOSH instance using this CPI. This VM is so-called "inception" server. You will install BOSH CLI and BOSH Deployer gems on this server and run all operations with them.
 
 
 #### Create Security Groups or Firewall Rules
@@ -44,7 +44,7 @@ You also need to create one or more security groups or firewall rules for VMs cr
 
 #### Boot a Ubuntu server
 
-We recommend Ubuntu 12.04 64bit or later for your inception server. For those who use Ubuntu 12.10 or later we strongly recommand to select OS type with Ubuntu 10.04 or later while creating instance via ISO file or registering VM templates. Please don't select other Linux distributions like Centos or Apple Mac OS in case of some issues.(Issue #7)
+We recommend Ubuntu 12.04 64bit or later for your inception server. For those who use Ubuntu 12.10 or later we strongly recommand to select `Ubuntu 10.04` or later for the `OS type` while creating instance via ISO file or registering VM templates. Please don't select other Linux distributions like Centos or Apple Mac OS.
 
 CentOS is not tested and it would be not compatible with this CPI. Don't forget adding the security group which opens the port 25889 to the VM.
 
@@ -113,9 +113,19 @@ The CloudStack CPI creates stemcells, which are VM templates, by copying pre-com
 In this section, you will deploy a MicroBOSH instance as the bootstrap. Micro BOSH is an all-in-one setup for BOSH.
 
 
-#### Generate Stemcell
+#### Download Stemcell
 
-MicroBOSH is provided as a VM image file so-called stemcell. You can create your stemcell by running the command below (takes about a half hour);
+MicroBOSH is provided as a VM image file so-called stemcell. You can download a pre-build stemcell created by the maintainer. Go to [the list page](http://cloudstack-cpi.str.cloudn-service.com/index.html) and download the latest (file with the largest number) stemcell.
+
+```sh
+# Download Stemcell version 1868
+wget http://cloudstack-cpi.str.cloudn-service.com/bosh-stemcell-1868-cloudstack-kvm-ubuntu.tgz
+```
+
+
+#### Generate Stemcell (optional)
+
+You can also create your stemcell by running the command below (takes about a half hour);
 
 
 ```sh
@@ -145,10 +155,16 @@ logging:
   level: DEBUG
 network:
   type: dynamic
+
+  # Only for Advanced Zone users. Delete these lines on Basic Zone
+  vip: <static_ip> # Optional. Public IP address for MicroBOSH. Delete this line if not needed
+  cloud_properties:
+    network_name: <network_name> # Subnetwork name (not VPC name)
+
 resources:
   persistent_disk: 40960
   cloud_properties:
-    instance_type: m1.medium
+    instance_type: <instance_type> # VM type
 cloud:
   plugin: cloudstack
   properties:
@@ -156,13 +172,17 @@ cloud:
       endpoint: <your_end_point_url> # Ask for your administrator
       api_key: <your_api_key> # You can find at your user page
       secret_access_key: <your_secret_access_key> # Same as above
-      default_security_groups:
-        - <security_groups_for_bosh> # Security group name which opens all TCP and UDP port
       default_key_name: <default_keypair_name> # Your keypair name (see the next section)
       private_key: <path_to_your_private_key> # The path to the private key file of your key pair
       state_timeout: 600
+      state_timeout_volume: 1200
       stemcell_public_visibility: true
       default_zone: <default_zone_name> # Zone name of your instaption server
+
+      # Only for Basic Zone users. Delete these lines on Advanced Zone
+      default_security_groups:
+        - <security_groups_for_bosh> # Security group name which opens all TCP and UDP port
+
     registry:
       endpoint: http://admin:admin@<ip_address_of_your_inception_sever>:25889 # Use `ifconfig` to confirm
       user: admin
@@ -222,7 +242,7 @@ cd ~/deployments
 # Specify your manifest file
 BUNDLE_GEMFILE=~/bosh/Gemfile bundle exec bosh micro deployment firstbosh
 # Then deploy
-BUNDLE_GEMFILE=~/bosh/Gemfile bundle exec bosh micro deploy
+BUNDLE_GEMFILE=~/bosh/Gemfile bundle exec bosh micro deploy <path_to_stemcell>
 ```
 
 The command will show outputs like below:
@@ -323,7 +343,7 @@ This step takes some time.
 Upload a stemcell to your MicroBOSH. You can use the same stemcell file which you used for bootstraping your MicroBOSH.
 
 ```sh
-BUNDLE_GEMFILE=~/bosh/Gemfile bundle exec bosh upload stemcell /mnt/stemcells/cloudstack/kvm/ubuntu/work/work/bosh-stemcell-3-cloudstack-kvm-ubuntu.tgz
+BUNDLE_GEMFILE=~/bosh/Gemfile bundle exec bosh upload stemcell <path_to_stemcell>
 ```
 
 
@@ -344,15 +364,21 @@ networks:
 - name: default
   type: dynamic
   cloud_properties:
+
+    # Only for Basic Zone users
     security_groups:
-    - bosh # Securiy group which opens all TCP and UDP ports
+      - bosh # Securiy group which opens all TCP and UDP ports
+
+    # Only for Advanced Zone users
+    network_name: <network_name> # subnetwork
+
 
 compilation:
   workers: 6
   network: default
   reuse_compilation_vms: true
   cloud_properties:
-    instance_type: m1.medium
+    instance_type: m1.medium        # VM type
     ephemeral_volume: Datadisk 40GB # Data disk offering name of additonal disk
 
 update:
@@ -369,7 +395,7 @@ resource_pools:
       name: bosh-cloudstack-kvm-ubuntu
       version: latest
     cloud_properties:
-      instance_type: m1.small
+      instance_type: m1.small        # VM type
       ephemeral_volume: Datadisk 40GB # Data disk offering name of additonal disk
 
   - name: large
@@ -379,7 +405,7 @@ resource_pools:
       name: bosh-cloudstack-kvm-ubuntu
       version: latest
     cloud_properties:
-      instance_type: m1.large
+      instance_type: m1.large        # VM type
       ephemeral_volume: Datadisk 40GB # Data disk offering name of additional disk
 
 jobs:
